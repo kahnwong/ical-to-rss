@@ -2,3 +2,4 @@
 *.rss
 .env
 ical-to-rss
+tmp
