@@ -1,0 +1,5 @@
+*.ics
+*.rss
+.env
+ical-to-rss
+tmp
