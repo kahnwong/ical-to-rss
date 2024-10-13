@@ -2,14 +2,18 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"time"
 
+	"github.com/apognu/gocal"
 	"github.com/gorilla/feeds"
 
-	"github.com/apognu/gocal"
+	"github.com/gofiber/contrib/fiberzerolog"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 func main() {
@@ -64,8 +68,54 @@ func main() {
 	feed.Items = feedItems
 	rss, err := feed.ToRss()
 	if err != nil {
-		log.Fatal(err)
+		//logger.Fatal.Err(err).Msg("") // [TODO]
+	} else {
+		// write to file
+		err = os.WriteFile("feed.rss", []byte(rss), 0644)
 	}
 
-	fmt.Println(rss)
+	fmt.Println(rss) // [TODO] remove
+
+	// api server
+	// entrypoint
+	mode := os.Getenv("MODE")
+	listenAddress := ""
+	isPrettyLog := false
+	switch mode {
+	case "PRODUCTION":
+		listenAddress = ":3000"
+	case "DEVELOPMENT":
+		listenAddress = "localhost:3000"
+		isPrettyLog = true
+	default:
+		log.Fatal().Msg("Listen address is not set")
+	}
+
+	// app
+	app := fiber.New()
+	logger := zerolog.New(os.Stderr).With().Timestamp().Logger()
+	if isPrettyLog {
+		logger = logger.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	}
+
+	app.Use(fiberzerolog.New(fiberzerolog.Config{
+		Logger: &logger,
+	}))
+
+	// 60 requests per 1 minute max
+	app.Use(limiter.New(limiter.Config{
+		Expiration: 1 * time.Minute,
+		Max:        60,
+	}))
+
+	// routes
+	app.Get("/", func(c *fiber.Ctx) error {
+		return c.SendString("Welcome to subsonic-widgets api")
+	})
+
+	app.Static("/feed.rss", "./feed.rss")
+
+	if err := app.Listen(listenAddress); err != nil {
+		logger.Fatal().Err(err).Msg("Fiber app error")
+	}
 }

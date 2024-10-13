@@ -1,3 +1,4 @@
-.env
 *.ics
+*.rss
+.env
 ical-to-rss
