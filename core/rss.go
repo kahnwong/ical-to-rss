@@ -25,7 +25,7 @@ func GenerateRss(c *gocal.Gocal, logger zerolog.Logger) {
 			Title:       e.Summary,
 			Link:        &feeds.Link{Href: ""},
 			Description: e.Description,
-			Author:      &feeds.Author{Name: e.Organizer.Cn, Email: e.Organizer.Cn},
+			Author:      &feeds.Author{Name: "", Email: ""},
 			Created:     *e.Created,
 		})
 	}
