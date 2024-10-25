@@ -9,7 +9,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-func GenerateRss(c *gocal.Gocal, logger zerolog.Logger) {
+func GenerateRss(c *gocal.Gocal, logger zerolog.Logger) string {
 	now := time.Now()
 	feed := &feeds.Feed{
 		Title:       os.Getenv("FEED_TITLE"),
@@ -34,10 +34,7 @@ func GenerateRss(c *gocal.Gocal, logger zerolog.Logger) {
 	rss, err := feed.ToRss()
 	if err != nil {
 		logger.Error().Err(err).Msg("Error generating RSS")
-	} else {
-		err = os.WriteFile("./temp/feed.rss", []byte(rss), 0644)
-		if err != nil {
-			logger.Error().Err(err).Msg("Error writing RSS to file")
-		}
 	}
+
+	return rss
 }

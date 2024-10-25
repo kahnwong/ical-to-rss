@@ -4,11 +4,12 @@ import (
 	"os"
 	"time"
 
+	"github.com/kahnwong/ical-to-rss/core"
+
 	"github.com/gofiber/contrib/fiberzerolog"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	_ "github.com/joho/godotenv/autoload"
-	"github.com/kahnwong/ical-to-rss/core"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -16,26 +17,6 @@ import (
 func main() {
 	// init
 	mode := os.Getenv("MODE")
-
-	// set logger
-	isPrettyLog := false
-	if mode == "DEVELOPMENT" {
-		isPrettyLog = true
-	}
-	logger := zerolog.New(os.Stderr).With().Timestamp().Logger()
-	if isPrettyLog {
-		logger = logger.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-	}
-
-	// ------------ generate feed ------------ //
-	// get ical
-	initTempFolder("./temp", logger)
-	icalUrl := os.Getenv("ICAL_URL")
-	core.DownloadIcal(icalUrl, logger)
-	c := core.ParseIcal(logger)
-
-	// generate rss
-	core.GenerateRss(c, logger)
 
 	// ------------ api server ------------ //
 	// entrypoint
@@ -51,6 +32,16 @@ func main() {
 
 	// app
 	app := fiber.New()
+
+	// set logger
+	isPrettyLog := false
+	if mode == "DEVELOPMENT" {
+		isPrettyLog = true
+	}
+	logger := zerolog.New(os.Stderr).With().Timestamp().Logger()
+	if isPrettyLog {
+		logger = logger.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	}
 	app.Use(fiberzerolog.New(fiberzerolog.Config{
 		Logger: &logger,
 	}))
@@ -65,8 +56,22 @@ func main() {
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("ICAL to RSS")
 	})
+	app.Get("/feed", func(c *fiber.Ctx) error {
+		// get ical
+		initTempFolder("./temp", logger)
+		icalUrl := os.Getenv("ICAL_URL")
+		core.DownloadIcal(icalUrl, logger)
+		calendar := core.ParseIcal(logger)
 
-	app.Static("/feed.rss", "./temp/feed.rss")
+		// generate rss
+		rss := core.GenerateRss(calendar, logger)
+
+		// serve rersponse
+		c.Type("xml")
+		_, err := c.Write([]byte(rss))
+
+		return err
+	})
 
 	// start server
 	if err := app.Listen(listenAddress); err != nil {
