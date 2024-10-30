@@ -2,6 +2,7 @@ package core
 
 import (
 	"os"
+	"slices"
 	"time"
 
 	"github.com/apognu/gocal"
@@ -20,6 +21,7 @@ func GenerateRss(c *gocal.Gocal, logger zerolog.Logger) string {
 	}
 
 	var feedItems []*feeds.Item
+	slices.Reverse(c.Events)
 	for _, e := range c.Events {
 		feedItems = append(feedItems, &feeds.Item{
 			Title:       e.Summary,
