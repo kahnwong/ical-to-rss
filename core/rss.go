@@ -1,6 +1,7 @@
 package core
 
 import (
+	"fmt"
 	"os"
 	"slices"
 	"time"
@@ -25,7 +26,7 @@ func GenerateRss(c *gocal.Gocal, logger zerolog.Logger) string {
 	for _, e := range c.Events {
 		feedItems = append(feedItems, &feeds.Item{
 			Title:       e.Summary,
-			Link:        &feeds.Link{Href: ""},
+			Link:        &feeds.Link{Href: fmt.Sprintf("https://th.techcal.dev/%s", e.RawStart.Value)},
 			Description: e.Description,
 			Author:      &feeds.Author{Name: "", Email: ""},
 			Created:     *e.Created,
