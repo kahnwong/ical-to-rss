@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/apognu/gocal"
@@ -27,7 +28,7 @@ func GenerateRss(c *gocal.Gocal, logger zerolog.Logger) string {
 		feedItems = append(feedItems, &feeds.Item{
 			Title:       e.Summary,
 			Link:        &feeds.Link{Href: fmt.Sprintf("https://th.techcal.dev/%s", e.RawStart.Value)},
-			Description: e.Description,
+			Description: strings.Replace(e.Description, "\\n", "<br>", -1),
 			Author:      &feeds.Author{Name: "", Email: ""},
 			Created:     *e.Created,
 		})
