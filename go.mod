@@ -4,7 +4,7 @@ go 1.23.2
 
 require (
 	github.com/apognu/gocal v0.9.1
-	github.com/gofiber/contrib/fiberzerolog v1.0.2
+	github.com/gofiber/contrib/fiberzerolog v1.0.3
 	github.com/gofiber/fiber/v2 v2.52.6
 	github.com/gorilla/feeds v1.2.0
 	github.com/joho/godotenv v1.5.1
