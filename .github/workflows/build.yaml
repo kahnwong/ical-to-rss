@@ -52,7 +52,7 @@ jobs:
           cache-to: type=gha,mode=max
           provenance: false
       - name: Scan image
-        uses: anchore/scan-action@v6
+        uses: anchore/scan-action@v7
         with:
           image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
       - name: Attest
