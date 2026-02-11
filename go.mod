@@ -1,6 +1,6 @@
 module github.com/kahnwong/ical-to-rss
 
-go 1.25
+go 1.26
 
 require (
 	github.com/apognu/gocal v0.9.1
