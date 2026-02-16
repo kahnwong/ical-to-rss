@@ -58,17 +58,33 @@ func main() {
 	})
 	app.Get("/feed", func(c *fiber.Ctx) error {
 		// get ical
-		initTempFolder("./temp", logger)
+		if err := initTempFolder("./temp"); err != nil {
+			logger.Error().Err(err).Msg("Error creating temp directory")
+			return err
+		}
+
 		icalUrl := os.Getenv("ICAL_URL")
-		core.DownloadIcal(icalUrl, logger)
-		calendar := core.ParseIcal(logger)
+		if err := core.DownloadIcal(icalUrl); err != nil {
+			logger.Error().Err(err).Msg("Error downloading ical file")
+			return err
+		}
+
+		calendar, err := core.ParseIcal()
+		if err != nil {
+			logger.Error().Err(err).Msg("Error parsing ical file")
+			return err
+		}
 
 		// generate rss
-		rss := core.GenerateRss(calendar, logger)
+		rss, err := core.GenerateRss(calendar)
+		if err != nil {
+			logger.Error().Err(err).Msg("Error generating RSS")
+			return err
+		}
 
 		// serve rersponse
 		c.Type("xml")
-		_, err := c.Write([]byte(rss))
+		_, err = c.Write([]byte(rss))
 
 		return err
 	})

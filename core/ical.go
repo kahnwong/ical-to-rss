@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/apognu/gocal"
-
-	"github.com/rs/zerolog"
 )
 
 func downloadFile(filepath string, url string) (err error) {
@@ -35,25 +33,25 @@ func downloadFile(filepath string, url string) (err error) {
 	return nil
 }
 
-func DownloadIcal(icalUrl string, logger zerolog.Logger) {
-	err := downloadFile("./temp/cal.ics", icalUrl)
-	if err != nil {
-		logger.Error().Err(err).Msg("Error downloading ical file")
-	}
+func DownloadIcal(icalUrl string) error {
+	return downloadFile("./temp/cal.ics", icalUrl)
 }
 
-func ParseIcal(logger zerolog.Logger) *gocal.Gocal {
-	f, _ := os.Open("./temp/cal.ics")
+func ParseIcal() (*gocal.Gocal, error) {
+	f, err := os.Open("./temp/cal.ics")
+	if err != nil {
+		return nil, err
+	}
 	defer f.Close()
 
 	start, end := time.Now(), time.Now().Add(12*30*24*time.Hour) // now to next 12 months
 
 	c := gocal.NewParser(f)
 	c.Start, c.End = &start, &end
-	err := c.Parse()
+	err = c.Parse()
 	if err != nil {
-		logger.Error().Err(err).Msg("Error downloading ical file")
+		return nil, err
 	}
 
-	return c
+	return c, nil
 }

@@ -9,10 +9,9 @@ import (
 
 	"github.com/apognu/gocal"
 	"github.com/gorilla/feeds"
-	"github.com/rs/zerolog"
 )
 
-func GenerateRss(c *gocal.Gocal, logger zerolog.Logger) string {
+func GenerateRss(c *gocal.Gocal) (string, error) {
 	now := time.Now()
 	feed := &feeds.Feed{
 		Title:       os.Getenv("FEED_TITLE"),
@@ -28,7 +27,7 @@ func GenerateRss(c *gocal.Gocal, logger zerolog.Logger) string {
 		feedItems = append(feedItems, &feeds.Item{
 			Title:       e.Summary,
 			Link:        &feeds.Link{Href: fmt.Sprintf("https://th.techcal.dev/%s", e.RawStart.Value)},
-			Description: strings.Replace(e.Description, "\\n", "<br>", -1),
+			Description: strings.ReplaceAll(e.Description, "\\n", "<br>"),
 			Author:      &feeds.Author{Name: "", Email: ""},
 			Created:     *e.Created,
 		})
@@ -37,8 +36,8 @@ func GenerateRss(c *gocal.Gocal, logger zerolog.Logger) string {
 	feed.Items = feedItems
 	rss, err := feed.ToRss()
 	if err != nil {
-		logger.Error().Err(err).Msg("Error generating RSS")
+		return "", err
 	}
 
-	return rss
+	return rss, nil
 }
