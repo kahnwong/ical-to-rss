@@ -1,17 +1,18 @@
 package main
 
 import (
+	"net/http"
 	"os"
 	"time"
 
-	"github.com/kahnwong/ical-to-rss/core"
-
-	"github.com/gofiber/contrib/fiberzerolog"
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/limiter"
+	"github.com/gin-contrib/logger"
+	"github.com/gin-gonic/gin"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"github.com/ulule/limiter/v3"
+	mgin "github.com/ulule/limiter/v3/drivers/middleware/gin"
+	"github.com/ulule/limiter/v3/drivers/store/memory"
 )
 
 func main() {
@@ -23,74 +24,48 @@ func main() {
 	listenAddress := ""
 	switch mode {
 	case "PRODUCTION":
+		gin.SetMode(gin.ReleaseMode)
 		listenAddress = ":3000"
 	case "DEVELOPMENT":
+		gin.SetMode(gin.DebugMode)
 		listenAddress = "localhost:3000"
 	default:
 		log.Fatal().Msg("Listen address is not set")
 	}
 
 	// app
-	app := fiber.New()
+	app := gin.New()
 
 	// set logger
 	isPrettyLog := false
 	if mode == "DEVELOPMENT" {
 		isPrettyLog = true
 	}
-	logger := zerolog.New(os.Stderr).With().Timestamp().Logger()
+	zerologger := zerolog.New(os.Stderr).With().Timestamp().Logger()
 	if isPrettyLog {
-		logger = logger.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+		zerologger = zerologger.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
-	app.Use(fiberzerolog.New(fiberzerolog.Config{
-		Logger: &logger,
-	}))
+	app.Use(logger.SetLogger(logger.WithLogger(func(_ *gin.Context, l zerolog.Logger) zerolog.Logger {
+		return zerologger
+	})))
 
 	// 60 requests per 1 minute max
-	app.Use(limiter.New(limiter.Config{
-		Expiration: 1 * time.Minute,
-		Max:        60,
-	}))
+	rate := limiter.Rate{
+		Period: 1 * time.Minute,
+		Limit:  60,
+	}
+	store := memory.NewStore()
+	rateLimiter := limiter.New(store, rate)
+	app.Use(mgin.NewMiddleware(rateLimiter))
 
 	// routes
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("ICAL to RSS")
+	app.GET("/", func(c *gin.Context) {
+		c.String(http.StatusOK, "ICAL to RSS")
 	})
-	app.Get("/feed", func(c *fiber.Ctx) error {
-		// get ical
-		if err := initTempFolder("./temp"); err != nil {
-			logger.Error().Err(err).Msg("Error creating temp directory")
-			return err
-		}
-
-		icalUrl := os.Getenv("ICAL_URL")
-		if err := core.DownloadIcal(icalUrl); err != nil {
-			logger.Error().Err(err).Msg("Error downloading ical file")
-			return err
-		}
-
-		calendar, err := core.ParseIcal()
-		if err != nil {
-			logger.Error().Err(err).Msg("Error parsing ical file")
-			return err
-		}
-
-		// generate rss
-		rss, err := core.GenerateRss(calendar)
-		if err != nil {
-			logger.Error().Err(err).Msg("Error generating RSS")
-			return err
-		}
-
-		// serve rersponse
-		c.Type("xml")
-		_, err = c.Write([]byte(rss))
-
-		return err
-	})
+	app.GET("/feed", FeedHandler(zerologger))
 
 	// start server
-	if err := app.Listen(listenAddress); err != nil {
-		logger.Fatal().Err(err).Msg("Fiber app error")
+	if err := app.Run(listenAddress); err != nil {
+		zerologger.Fatal().Err(err).Msg("Gin app error")
 	}
 }
