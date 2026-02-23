@@ -57,7 +57,7 @@ jobs:
           image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           output-format: sarif
       - name: Upload scan report
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always() # Ensure results are uploaded even if the scan fails
         with:
           sarif_file: ${{ steps.scan.outputs.sarif }}
