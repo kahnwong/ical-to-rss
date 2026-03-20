@@ -37,10 +37,8 @@ func main() {
 	app := gin.New()
 
 	// set logger
-	isPrettyLog := false
-	if mode == "DEVELOPMENT" {
-		isPrettyLog = true
-	}
+	isPrettyLog := mode == "DEVELOPMENT"
+
 	zerologger := zerolog.New(os.Stderr).With().Timestamp().Logger()
 	if isPrettyLog {
 		zerologger = zerologger.Output(zerolog.ConsoleWriter{Out: os.Stderr})
