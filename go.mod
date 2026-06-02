@@ -1,6 +1,6 @@
 module github.com/kahnwong/ical-to-rss
 
-go 1.26.3
+go 1.26.4
 
 require (
 	github.com/JGLTechnologies/gin-rate-limit v1.5.8
