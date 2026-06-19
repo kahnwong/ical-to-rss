@@ -5,14 +5,12 @@ import (
 	"os"
 	"time"
 
+	ratelimit "github.com/JGLTechnologies/gin-rate-limit"
 	"github.com/gin-contrib/logger"
 	"github.com/gin-gonic/gin"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"github.com/ulule/limiter/v3"
-	mgin "github.com/ulule/limiter/v3/drivers/middleware/gin"
-	"github.com/ulule/limiter/v3/drivers/store/memory"
 )
 
 func main() {
@@ -47,14 +45,19 @@ func main() {
 		return zerologger
 	})))
 
-	// 60 requests per 1 minute max
-	rate := limiter.Rate{
-		Period: 1 * time.Minute,
-		Limit:  60,
-	}
-	store := memory.NewStore()
-	rateLimiter := limiter.New(store, rate)
-	app.Use(mgin.NewMiddleware(rateLimiter))
+	// 60 requests per 1 minute max per client IP
+	store := ratelimit.InMemoryStore(&ratelimit.InMemoryOptions{
+		Rate:  1 * time.Minute,
+		Limit: 60,
+	})
+	app.Use(ratelimit.RateLimiter(store, &ratelimit.Options{
+		ErrorHandler: func(c *gin.Context, info ratelimit.Info) {
+			c.String(http.StatusTooManyRequests, "Too many requests. Try again in "+time.Until(info.ResetTime).String())
+		},
+		KeyFunc: func(c *gin.Context) string {
+			return c.ClientIP()
+		},
+	}))
 
 	// routes
 	app.GET("/", func(c *gin.Context) {
