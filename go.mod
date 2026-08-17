@@ -3,7 +3,7 @@ module github.com/kahnwong/ical-to-rss
 go 1.26.5
 
 require (
-	github.com/JGLTechnologies/gin-rate-limit v1.5.8
+	github.com/JGLTechnologies/gin-rate-limit v1.5.9
 	github.com/apognu/gocal v0.9.1
 	github.com/gin-contrib/logger v1.2.7
 	github.com/gin-gonic/gin v1.12.0
