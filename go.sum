@@ -2,6 +2,8 @@ github.com/ChannelMeter/iso8601duration v0.0.0-20150204201828-8da3af7a2a61 h1:N5
 github.com/ChannelMeter/iso8601duration v0.0.0-20150204201828-8da3af7a2a61/go.mod h1:GnKXcK+7DYNy/8w2Ex//Uql4IgfaU82Cd5rWKb7ah00=
 github.com/JGLTechnologies/gin-rate-limit v1.5.8 h1:KiaHIEbpYxHpDvjhpjIif8fnVmjdw/afCMdGoN1AsB0=
 github.com/JGLTechnologies/gin-rate-limit v1.5.8/go.mod h1:t9eLOUxikPI0TzKy0VYRbZJr7hBP2Qg9E3JigoxF70g=
+github.com/JGLTechnologies/gin-rate-limit v1.5.9 h1:EXbE5sSHG/4oaWSrhFgm5ebFzIAdBwaeIgwia8esUvo=
+github.com/JGLTechnologies/gin-rate-limit v1.5.9/go.mod h1:t9eLOUxikPI0TzKy0VYRbZJr7hBP2Qg9E3JigoxF70g=
 github.com/apognu/gocal v0.9.1 h1:e3vlb+YV5wXvqBxYsC6GvkuUAEnRipkvoA1P79gwspM=
 github.com/apognu/gocal v0.9.1/go.mod h1:5tNvJsQGJHwS3KqWxHAFZzavC4k42jrJ3ouVmOzS/AM=
 github.com/bsm/ginkgo/v2 v2.12.0 h1:Ny8MWAHyOepLGlLKYmXG4IEkioBysk6GpaRTLC8zwWs=
